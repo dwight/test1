@@ -51,6 +51,7 @@
 #include "mongo/util/mongoutils/checksum.h"
 #include "mongo/util/mongoutils/html.h"
 #include "mongo/util/mongoutils/str.h"
+#include "mtrace.h"
 
 namespace mongo {
 
@@ -120,6 +121,9 @@ namespace mongo {
             }
         }
 #endif
+
+        Doing::initThread(desc);
+
         verify( currentClient.get() == 0 );
         Client *c = new Client(desc, mp);
         currentClient.reset(c);

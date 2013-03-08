@@ -32,6 +32,7 @@
 #include "dur.h"
 #include "lockstat.h"
 #include "mongo/db/commands/server_status.h"
+#include "mongo/db/mtrace.h"
 
 // oplog locking
 // no top level read locks
@@ -109,12 +110,14 @@ namespace mongo {
         LockStat stats;
 
         void lock_r() { 
+            Doing d(qlock_r);
             verify( threadState() == 0 );
             lockState().lockedStart( 'r' );
             q.lock_r(); 
         }
         
         void lock_w() { 
+            Doing d(qlock_w);
             verify( threadState() == 0 );
             getDur().commitIfNeeded();
             lockState().lockedStart( 'w' );
@@ -122,6 +125,7 @@ namespace mongo {
         }
         
         void lock_R() {
+            Doing d(qlock_R);
             LockState& ls = lockState();
             massert(16103, str::stream() << "can't lock_R, threadState=" << (int) ls.threadState(), ls.threadState() == 0);
             ls.lockedStart( 'R' );
@@ -129,6 +133,7 @@ namespace mongo {
         }
 
         void lock_W() {            
+            Doing d(qlock_W);
             LockState& ls = lockState();
             if(  ls.threadState() ) {
                 log() << "can't lock_W, threadState=" << (int) ls.threadState() << endl;
@@ -144,6 +149,7 @@ namespace mongo {
 
         // how to count try's that fail is an interesting question. we should get rid of try().
         bool lock_R_try(int millis) { 
+            Doing d(qlock_R);
             verify( threadState() == 0 );
             bool got = q.lock_R_try(millis); 
             if( got ) 
@@ -152,6 +158,7 @@ namespace mongo {
         }
         
         bool lock_W_try(int millis) { 
+            Doing d(qlock_W);
             verify( threadState() == 0 );
             bool got = q.lock_W_try(millis); 
             if( got ) {
@@ -184,10 +191,22 @@ namespace mongo {
         }
 
         // todo timing stats? : 
-        void W_to_R()                        { q.W_to_R(); }
-        void R_to_W()                        { q.R_to_W(); }
-        bool w_to_X() { return q.w_to_X(); }
-        void X_to_w() { q.X_to_w(); }
+        void W_to_R() { 
+            Doing d(qlock_Other);
+            q.W_to_R(); 
+        }
+        void R_to_W() { 
+            Doing d(qlock_Other);
+            q.R_to_W(); 
+        }
+        bool w_to_X() { 
+            Doing d(qlock_X);
+            return q.w_to_X(); 
+        }
+        void X_to_w() { 
+            Doing d(qlock_Other);
+            q.X_to_w(); 
+        }
 
     private:
         void _unlock_R() {
@@ -488,6 +507,7 @@ namespace mongo {
             verify( ls.nestableCount() > 0 );
         }
         else {
+            Doing d(lock_nest_w);
             fassert(16132,_weLocked==0);
             ls.lockedNestable(db, 1);
             _weLocked = nestableLocks[db];
@@ -501,6 +521,7 @@ namespace mongo {
             // we are nested in our locking of local.  previous lock could be read OR write lock on local.
         }
         else {
+            Doing d(lock_nest_r);
             ls.lockedNestable(db,-1);
             fassert(16133,_weLocked==0);
             _weLocked = nestableLocks[db];
@@ -522,6 +543,8 @@ namespace mongo {
 
         // first lock for this db. check consistent order with local db lock so we never deadlock. local always comes last
         massert(16098, str::stream() << "can't dblock:" << db << " when local or admin is already locked", ls.nestableCount() == 0);
+
+        Doing d(lock_db_w);
 
         if( db != ls.otherName() )
         {
@@ -712,6 +735,8 @@ namespace mongo {
 
         // first lock for this db. check consistent order with local db lock so we never deadlock. local always comes last
         massert(16100, str::stream() << "can't dblock:" << db << " when local or admin is already locked", ls.nestableCount() == 0);
+
+        Doing d(lock_db_r);
 
         if( db != ls.otherName() )
         {

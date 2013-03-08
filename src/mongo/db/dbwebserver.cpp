@@ -20,7 +20,7 @@
 */
 
 #include "pch.h"
-
+#include "mongo/db/mtrace.h"
 #include "mongo/db/auth/authorization_manager.h"
 #include "mongo/db/auth/principal.h"
 #include "mongo/db/auth/privilege.h"
@@ -381,6 +381,18 @@ namespace mongo {
     vector<DbWebHandler*> * DbWebHandler::_handlers = 0;
 
     // --- basic handlers ---
+
+    class ProfileChart : public DbWebHandler { 
+    public:
+        ProfileChart() : DbWebHandler("_mtrace", 0, false) { }
+        virtual void handle( const char *rq, const std::string& url, BSONObj params,
+                             string& responseMsg, int& responseCode,
+                             vector<string>& headers,  const SockAddr &from ) {
+            responseCode = 200;
+            headers.push_back( "Content-Type: image/bmp" );
+            getBmp(responseMsg);
+        }
+    } mtraceHandler;
 
     class FavIconHandler : public DbWebHandler {
     public:

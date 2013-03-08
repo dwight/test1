@@ -43,6 +43,7 @@
 #include "mongo/util/fail_point_service.h"
 #include "mongo/util/mongoutils/str.h"
 #include "mongo/db/cmdline.h"
+#include "mongo/db/mtrace.h"
 
 namespace mongo {
     MONGO_FP_DECLARE(throwSockExcep);
@@ -562,7 +563,7 @@ namespace mongo {
      * @param context descriptive for logging
      */
     void Socket::send( const vector< pair< char *, int > > &data, const char *context ) {
-
+        Doing d(SockW);
 #ifdef MONGO_SSL
         if ( _ssl ) {
             _send( data , context );

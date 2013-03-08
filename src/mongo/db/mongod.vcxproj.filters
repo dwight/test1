@@ -1814,6 +1814,9 @@
     <ClCompile Include="index_set.cpp">
       <Filter>db\Source Files\e to n</Filter>
     </ClCompile>
+    <ClCompile Include="mtrace.cpp">
+      <Filter>db</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\targetver.h" />
