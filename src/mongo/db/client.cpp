@@ -122,7 +122,7 @@ namespace mongo {
         }
 #endif
 
-        Doing::initThread(desc);
+        mtrace::Doing::initThread(desc);
 
         verify( currentClient.get() == 0 );
         Client *c = new Client(desc, mp);

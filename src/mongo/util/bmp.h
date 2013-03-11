@@ -1,4 +1,5 @@
 // @file bmp.h
+//       very simple BMP file format implementation
 
 #pragma once
 
@@ -9,7 +10,7 @@ namespace mongo {
 #pragma pack(1)
     class Color {
     public:
-        char color[3];
+        unsigned char color[3];
 
         void x();
 
@@ -74,8 +75,10 @@ namespace mongo {
         free(p); p = 0;
     }
     inline void BMP::set(int x, int y, Color c) {
-        char *z = &p->data[ (y * p->w + x) * 3 ];
-        memcpy(z, c.color, 3);
+        if( x < p->w && y < p->h ) {
+            char *z = &p->data[ (y * p->w + x) * 3 ];
+            memcpy(z, c.color, 3);
+        }
     }
     inline const char * BMP::getFile(int& len) { 
         len = p->len;

@@ -27,6 +27,7 @@
 #include "mongo/db/lockstat.h"
 #include "mongo/util/concurrency/mutex.h"
 #include "mongo/util/concurrency/rwlock.h"
+#include "mongo/db/mtrace.h"
 
 namespace mongo {
 
@@ -57,6 +58,7 @@ namespace mongo {
 
         // note: avoid TempRelease when possible. not a good thing.
         struct TempRelease {
+            _DOING(temp_release);
             TempRelease(); 
             ~TempRelease();
             const bool cant; // true if couldn't because of recursive locking
@@ -153,6 +155,8 @@ namespace mongo {
 
         // lock this database. do not shared_lock globally first, that is handledin herein. 
         class DBWrite : public ScopedLock {
+            _DOING(db_write);
+
             /**
              * flow
              *   1) lockDB
@@ -195,6 +199,8 @@ namespace mongo {
 
         // lock this database for reading. do not shared_lock globally first, that is handledin herein. 
         class DBRead : public ScopedLock {
+            _DOING(db_read);
+
             void lockTop(LockState&);
             void lockNestable(Nestable db);
             void lockOther(const StringData& db);
@@ -214,7 +220,6 @@ namespace mongo {
             WrapperForRWLock *_weLocked;
             string _what;
             bool _nested;
-            
         };
 
     };

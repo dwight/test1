@@ -388,9 +388,10 @@ namespace mongo {
         virtual void handle( const char *rq, const std::string& url, BSONObj params,
                              string& responseMsg, int& responseCode,
                              vector<string>& headers,  const SockAddr &from ) {
+            log() << params.toString() << endl;
             responseCode = 200;
             headers.push_back( "Content-Type: image/bmp" );
-            getBmp(responseMsg);
+            mtrace::getBmp(responseMsg, str::toUnsigned(params["micros"].String()));
         }
     } mtraceHandler;
 

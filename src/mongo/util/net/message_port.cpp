@@ -156,7 +156,7 @@ namespace mongo {
     }
 
     bool MessagingPort::recv(Message& m) {
-        Doing d(SockR);
+        DOING(SockR);
         try {
 again:
             //mmm( log() << "*  recv() sock:" << this->sock << endl; )

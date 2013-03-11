@@ -25,6 +25,7 @@
 #include "mutexdebugger.h"
 #endif
 #include "simplerwlock.h"
+#include "mongo/db/mtrace.h"
 
 namespace mongo {
 
@@ -221,6 +222,7 @@ namespace mongo {
 
     class RWLockRecursiveNongreedy : public RWLockRecursive { 
         virtual void Lock() { 
+            DOING(lock_rwnongreedy);
             bool got = false;
             for ( int i=0; i<lowPriorityWaitMS; i++ ) {
                 if ( lock_try(0) ) {

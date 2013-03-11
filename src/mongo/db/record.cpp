@@ -402,7 +402,7 @@ namespace mongo {
     
     volatile int __record_touch_dummy = 1; // this is used to make sure the compiler doesn't get too smart on us
     void Record::touch( bool entireRecrd ) const {
-        Doing d(act_touch);
+        DOING(act_touch);
         if ( _lengthWithHeaders > HeaderSize ) { // this also makes sure lengthWithHeaders is in memory
             const char * addr = _data;
             const char * end = _data + _netLength();

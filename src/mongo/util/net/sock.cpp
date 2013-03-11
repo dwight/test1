@@ -563,7 +563,7 @@ namespace mongo {
      * @param context descriptive for logging
      */
     void Socket::send( const vector< pair< char *, int > > &data, const char *context ) {
-        Doing d(SockW);
+        DOING(SockW);
 #ifdef MONGO_SSL
         if ( _ssl ) {
             _send( data , context );

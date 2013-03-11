@@ -19,11 +19,14 @@
 
 #pragma once
 
+#include "mongo/db/mtrace.h"
+
 namespace mongo {
 
     class Record;
 
     class PageFaultException /*: public DBException*/ { 
+        _DOING(pagefaultexception);
         unsigned era;
         const Record *r;
     public:
