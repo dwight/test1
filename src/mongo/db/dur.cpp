@@ -74,7 +74,7 @@
 #include "../server.h"
 #include "mongo/db/commands/fsync.h"
 #include "mongo/db/commands/server_status.h"
-#include "mtrace.h"
+#include "mongo/util/mtrace.h"
 
 using namespace mongoutils;
 
@@ -199,7 +199,7 @@ namespace mongo {
         }
 
         bool DurableImpl::commitNow() {
-            DOING(early_commit);
+            MTRACE("early_commit");
             stats.curr->_earlyCommits++;
             groupCommit(0);
             return true;
@@ -533,7 +533,7 @@ namespace mongo {
             Call within write lock.  See top of file for more commentary.
         */
         void REMAPPRIVATEVIEW() {
-            DOING(remapprivateview);
+            MTRACE("remapprivateview");
             Timer t;
             _REMAPPRIVATEVIEW();
             stats.curr->_remapPrivateViewMicros += t.micros();
@@ -603,7 +603,7 @@ namespace mongo {
 
         /** @return true if committed; false if lock acquisition timed out (we only try for a read lock herein and only wait for a certain duration). */
         bool groupCommitWithLimitedLocks() {
-            DOING(group_commit_ll);
+            MTRACE("group_commit_ll");
             try {
                 return _groupCommitWithLimitedLocks();
             }
@@ -627,7 +627,7 @@ namespace mongo {
         }
 
         static void _groupCommit(Lock::GlobalWrite *lgw) {
-            DOING(group_commit);
+            MTRACE("group_commit");
             LOG(4) << "_groupCommit " << endl;
 
             // We are 'R' or 'W'

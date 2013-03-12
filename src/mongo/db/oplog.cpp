@@ -329,7 +329,7 @@ namespace mongo {
           u update
     */
     void logOp(const char *opstr, const char *ns, const BSONObj& obj, BSONObj *patt, bool *b, bool fromMigrate) {
-        DOING(logop);
+        MTRACE("logop");
 
         if ( replSettings.master ) {
             _logOp(opstr, ns, 0, obj, patt, b, fromMigrate);

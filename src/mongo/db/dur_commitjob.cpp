@@ -193,6 +193,7 @@ namespace mongo {
             groupCommitMutex("groupCommit"),
             _hasWritten(false)
         { 
+            groupCommitMutex._a = "groupcommitmutex";
             _commitNumber = 0;
             _bytes = 0;
             _nSinceCommitIfNeededCall = 0;

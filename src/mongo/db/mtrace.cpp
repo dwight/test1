@@ -1,50 +1,34 @@
 #include "pch.h"
-#include "util/bmp.h"
-#include "mtrace.h"
-#include "util/timer.h"
+#include "mongo/util/bmp.h"
+#include "mongo/util/mtrace.h"
+#include "mongo/util/timer.h"
+#include "mongo/util/mongoutils/str.h"
+
+using namespace mongoutils;
 
 namespace mongo { 
     namespace mtrace {
 
     unsigned font[] = {
-        0x6999996,
-        0x1111111,
-        0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
-        0xf99f999,
-        0xE99E99E,
-        0x7888887,
-        0xE99999E,
-        0xF88E88F,
-        0xF88E888,
-        0xF88F99F,
-        0x999f999,//h
-        0xF44444F,
-        0x111999F,
-        0x9AC8CA9,
-        0x888888F,
-        0x99ff999,//M
-        0x9DDBBB9,
-        0x6999996,
-        0xE99E888,
-        0x6999771,
-        0xE99CA99,
-        0xf88f11f,
-        0xf444444,
-        0x999999f,
-        0x999aa66,
-        0x99bbff9,//W
-        0x9966699,
-        0x999f222,
-        0x9112449,
-        0,0,0,0,
-        0x000000f,
-        0x00999f8,// mu
-        0x007999f, // a
-        0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
-        0x00f8888,
-        0x0f8f1f0, // s
-        0,0,0,
-        0x0099bff,0,0,0
+        0x6999996,/*0*/   0x1111111,        0x699248f,        0x788e887,
+        0xaaaf222,        0xf88f11f,        0xf88f99f,        0xf111111,
+        0x6996996,        0x6997111,        0x0020200,        0,0,0,0,0,0,
+        0xf99f999,//A
+        0xE99E99E,        0x7888887,        0xE99999E,        0xF88E88F,
+        0xF88E888,        0x788F997,        0x999f999,        0xF44444F,
+        0x111999F,        0x9AC8CA9,        0x888888F,        0x99ff999,
+        0x9DDBBB9,        0x6999996,        0xE99E888,        0x6999771,
+        0xE99CA99,        0x788f11e,        0xf444444,        0x999999f,
+        0x999aa66,        0x99bbff9,        0x9966699,        0x999f222,
+        0x9112449,        0,0,0,0,          0x000000f,/*_*/   0x00999f8,//μ
+        0x0079997,//a
+        0x888e99e,        0x0078887,        0x1179997,        0x0069f86,//e
+        0x0699e88,        0x0069717,        0x088f999,        0x0202222,
+        0x0111117,        0x089aca9,        0x2222222,        0x00ff999,
+        0x00f9999,        0x0069996,        0x00e99e8,        0x0079971,
+        0x0078888,        0x00f8f1f,        0x022f223,        0x0099997,
+        0x0009966,        0x0099bff,        0x0099699,        0x0009648,
+        0x000f24f
     };
 
     struct Canvas {
@@ -95,9 +79,12 @@ namespace mongo {
         }
     };
 
-    //TSP_DEFINE(TraceState, traceState);
-
-    __declspec( thread ) TraceState *traceState = 0;
+    //TSP_DEFINE(ThreadTraceState, traceState);
+#if defined(_WIN32)
+    __declspec( thread ) ThreadTraceState *traceState = 0;
+#else
+    __thread ThreadTraceState *traceState = 0;
+#endif
 
     struct Canvas; 
 
@@ -105,59 +92,54 @@ namespace mongo {
         const int MaxThreads = 50;
         int nThreads = 0;
         SimpleMutex m("mtrace");
-        TraceState states[MaxThreads];
+        ThreadTraceState states[MaxThreads];
         int z = 0;
         Color clr(0,0,0);
         const int graph_topmargin = 1000-30;
         struct ActInfo {
-            const char *desc;
+            string desc;
             Color c;
             int ord;
             int y() { 
-                return graph_topmargin-nThreads*10-30-7-10*ord-((ord-1)/4)*6;
+                return graph_topmargin-nThreads*10-30-7-10*ord/*-((ord-1)/4)*6*/;
             }
-            ActInfo(const char *d) : desc(d) {
+            ActInfo(const char *d) {
+                {
+                    string s = d;
+                    if( str::endsWith(s, "ZZZ") ) { 
+                        log() << "actinfo " << s << endl;
+                        s = str::before(s, "::ZZZ");      
+                        if( str::startsWith(s, "class") )
+                            s = s.substr(5);
+                        if( str::startsWith(s,"struct") )
+                            s = s.substr(6);
+                        s = str::ltrim(s);
+                        if( str::startsWith(s,"mongo::") )
+                            s = s.substr(7);
+                    }
+                    desc = s;
+                }
+
                 ord = z;
                 int x = (z++)%3;
                 clr.color[x] = (((unsigned)clr.color[x]) + 103 + z) % 256;
                 c = clr;
                 //log() << "actinfo " << d << " ord:" << ord << endl;
             }
-            ActInfo(const char *d, int r, int g, int b) : desc(d), c(r,g,b) {
+            /*ActInfo(const char *d, int r, int g, int b) : desc(d), c(r,g,b) {
                 ord = z++;
-            }
+            }*/
             Color color() { return c; }
         };
-        ActInfo ai[] = { 
-            ActInfo("none"),
-            ActInfo("SockR",0,0,88),
-            ActInfo("SockW",104,155,155),
-            ActInfo("GET_QLOCK_r"),
-            ActInfo("GET_QLOCK_R"),
-            ActInfo("GET_QLOCK_w"),
-            ActInfo("GET_QLOCK_W"),
-            ActInfo("GET_QLOCK_OTHER"),
-            ActInfo("GET_QLOCK_X"),
-            ActInfo("TOUCH",245,245,245),
-            ActInfo("lkNESTR"),
-            ActInfo("lkNESTW"),
-            ActInfo("GET_LOCK_DBR",102,204,0),
-            ActInfo("DBREAD",       51,102,0),
-            ActInfo("GET_LOCK_DBW",204,204,0),
-            ActInfo("DBWRITE",     102,102,0),
-            ActInfo("STATICYIELD"),
-            ActInfo("EARLYCOMMIT"),
-            ActInfo("GROUPCOMMIT"),
-            ActInfo("GROUPCOMMITLL"),
-            ActInfo("SYNC"),
-            ActInfo("LOCKRWNONGREEDY"),
-            ActInfo("REMAPPRIVATEVIEW",200,0,0),
-            ActInfo("ASSEMBLERESPONSE",44,44,44),
-            ActInfo("TEMPRELEASE",127,0,255),
-            ActInfo("PAGEFAULTEXCEPTION"),
-            ActInfo("LOGOP",204,102,0),
-            ActInfo("SLEEP",0,96,0)
-        };
+        map<const char *,ActInfo*> actInfo;
+
+        ActInfo& getAct(Act a) { 
+            ActInfo*& ai = actInfo[a];
+            if( ai == 0 ) { 
+                ai = new ActInfo(a);
+            }
+            return *ai;
+        }
 
         void gen(BMP& b, Canvas& c, int micros) { 
             const int graph_lmargin = 140;
@@ -182,7 +164,7 @@ namespace mongo {
 
                 int x = graph_lmargin+s;
                 for( int i = 0; i < nThreads; i++ ) {
-                    volatile TraceState& ts = states[i];
+                    volatile ThreadTraceState& ts = states[i];
                     y = graph_topmargin - i*10;
                     if( s == 0 ) { 
                         c.color = Color(96,96,96);
@@ -193,8 +175,8 @@ namespace mongo {
                     if( i % 2 == 1 && x % 2 == 0 ) {
                         b.set(x, y, light_grey);
                     }
-                    for( int n = 0; n < ts.nest; n++ ) { 
-                        ActInfo& a = ai[ ts.acts[n] ];
+                    for( unsigned n = 0; n < ts.nest; n++ ) { 
+                        ActInfo& a = getAct( ts.acts[n] );
                         Color c = a.color();
                         b.set(x, y-n, c);
                         b.set(x, a.y()+3, c);
@@ -223,21 +205,24 @@ namespace mongo {
                     }*/
                 }
             }
-            for( int i = 1; i < NActs; i++ ) { 
-                c.moveTo(10, ai[i].y());
-                c.color = ai[i].color();
-                c.print(ai[i].desc,true);
+            {
+                for( map<const char*,ActInfo*>::iterator i = actInfo.begin(); i != actInfo.end(); i++ ) {
+                    ActInfo& a = *i->second;
+                    c.moveTo(10, a.y());
+                    c.color = a.color();
+                    c.print(a.desc.c_str(),true);
+                }
             }
             log() << "time: " << t.millis() << ' ' << Samples << endl;
         }
     }
 
-    TraceState::TraceState() { 
+    ThreadTraceState::ThreadTraceState() { 
         nest = 0;
-        for( int i = 0; i < N; i++ ) acts[i] = None;
+        for( int i = 0; i < N; i++ ) acts[i] = "";
     }
 
-    void Doing::initThread(const char *desc) {
+    void initThread(const char *desc) {
         if( traceState == 0 ) {
             SimpleMutex::scoped_lock lk(m);
             verify( nThreads < MaxThreads );

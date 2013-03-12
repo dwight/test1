@@ -29,7 +29,7 @@
 #include "../time_support.h"
 #include "../../db/cmdline.h"
 #include "../scopeguard.h"
-#include "mongo/db/mtrace.h"
+#include "mongo/util/mtrace.h"
 
 #ifndef _WIN32
 # ifndef __sunos__
@@ -156,7 +156,7 @@ namespace mongo {
     }
 
     bool MessagingPort::recv(Message& m) {
-        DOING(SockR);
+        MTRACE("sockrd");
         try {
 again:
             //mmm( log() << "*  recv() sock:" << this->sock << endl; )

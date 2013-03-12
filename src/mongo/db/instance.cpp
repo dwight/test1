@@ -335,7 +335,7 @@ namespace mongo {
 
     // Returns false when request includes 'end'
     void assembleResponse( Message &m, DbResponse &dbresponse, const HostAndPort& remote ) {
-        DOING(assembleResponse);
+        MTRACE("assembleResponse");
 
         // before we lock...
         int op = m.operation();

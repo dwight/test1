@@ -460,7 +460,7 @@ namespace mongo {
                     break;
                 }
 
-                DOING(sync);
+                MTRACE("sync");
                 Date_t start = jsTime();                
                 int numFiles = MemoryMappedFile::flushAll( true );
                 time_flushing = (int) (jsTime() - start);

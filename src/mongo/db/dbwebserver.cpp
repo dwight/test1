@@ -20,7 +20,7 @@
 */
 
 #include "pch.h"
-#include "mongo/db/mtrace.h"
+#include "mongo/util/mtrace.h"
 #include "mongo/db/auth/authorization_manager.h"
 #include "mongo/db/auth/principal.h"
 #include "mongo/db/auth/privilege.h"

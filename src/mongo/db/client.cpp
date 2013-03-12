@@ -51,7 +51,7 @@
 #include "mongo/util/mongoutils/checksum.h"
 #include "mongo/util/mongoutils/html.h"
 #include "mongo/util/mongoutils/str.h"
-#include "mtrace.h"
+#include "mongo/util/mtrace.h"
 
 namespace mongo {
 
@@ -122,7 +122,7 @@ namespace mongo {
         }
 #endif
 
-        mtrace::Doing::initThread(desc);
+        mtrace::initThread(desc);
 
         verify( currentClient.get() == 0 );
         Client *c = new Client(desc, mp);

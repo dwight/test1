@@ -48,7 +48,7 @@
 #include "mongo/platform/random.h"
 #include "mongo/util/processinfo.h"
 #include "mongo/util/timer.h"
-#include "mtrace.h"
+#include "mongo/util/mtrace.h"
 
 namespace mongo {
 
@@ -556,7 +556,7 @@ namespace mongo {
     }
 
     void ClientCursor::staticYield( int micros , const StringData& ns , Record * rec ) {
-        DOING(static_yield);
+        MTRACE("static_yield");
         bool haveReadLock = Lock::isReadLocked();
 
         killCurrentOp.checkForInterrupt( false );

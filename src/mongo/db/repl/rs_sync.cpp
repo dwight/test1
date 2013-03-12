@@ -230,6 +230,7 @@ namespace replset {
 
     // Doles out all the work to the writer pool threads and waits for them to complete
     void SyncTail::multiApply( std::deque<BSONObj>& ops, MultiSyncApplyFunc applyFunc ) {
+        MTRACE("multiApply");
 
         // Use a ThreadPool to prefetch all the operations in a batch.
         prefetchOps(ops);
@@ -523,6 +524,8 @@ namespace replset {
     }
 
     void SyncTail::applyOpsToOplog(std::deque<BSONObj>* ops) {
+        MTRACE("applyOpsToOplog");
+
         {
             Lock::DBWrite lk("local");
             while (!ops->empty()) {

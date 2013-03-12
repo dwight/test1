@@ -29,6 +29,7 @@
 #include "mongo/util/heapcheck.h"
 #include "mongo/util/concurrency/threadlocal.h"
 #include "mongo/util/time_support.h"
+#include "mongo/util/mtrace.h"
 
 #if defined(_DEBUG)
 #include "mongo/util/concurrency/mutexdebugger.h"
@@ -130,10 +131,19 @@ namespace mongo {
 #if defined(_WIN32)
     class SimpleMutex : boost::noncopyable {
     public:
-        SimpleMutex( const char * ) { InitializeCriticalSection( &_cs ); }
+        mtrace::Act _a;
+        SimpleMutex( const char * ) { _a=0; InitializeCriticalSection( &_cs ); }
         void dassertLocked() const { }
-        void lock() { EnterCriticalSection( &_cs ); }
-        void unlock() { LeaveCriticalSection( &_cs ); }
+        void lock() { 
+            if( _a ) 
+                mtrace::begin(_a);
+            EnterCriticalSection( &_cs ); 
+        }
+        void unlock() { 
+            if( _a ) 
+                mtrace::end();
+           LeaveCriticalSection( &_cs ); 
+        }
         class scoped_lock {
             SimpleMutex& _m;
         public:
