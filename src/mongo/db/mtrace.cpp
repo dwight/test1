@@ -88,7 +88,7 @@ namespace mongo {
     struct Canvas; 
 
     namespace {
-        const int MaxThreads = 50;
+        const int MaxThreads = 100;
         int nThreads = 0;
         SimpleMutex m("mtrace");
         ThreadTraceState states[MaxThreads];

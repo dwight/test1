@@ -18,6 +18,7 @@
 #include "pch.h" // todo eliminate this include
 #include <time.h>
 #include "spin_lock.h"
+#include "mongo/util/mtrace.h"
 
 namespace mongo {
 
@@ -57,6 +58,8 @@ namespace mongo {
             asm volatile ( "pause" ) ; // maybe trylock does this; just in case.
 #endif
         }
+
+        MTRACE("longspin");
 
         for ( int i=0; i<1000; i++ ) {
             if ( pthread_spin_trylock( &_lock ) == 0 )

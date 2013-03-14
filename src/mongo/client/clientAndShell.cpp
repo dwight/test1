@@ -22,8 +22,18 @@
 #include "../s/shard.h"
 #include "../util/timer.h"
 #include "clientOnly-private.h"
+#include "mongo/util/mtrace.h"
 
 namespace mongo {
+
+    namespace mtrace {
+        ThreadTraceState dummy(8);
+#if defined(_WIN32)
+        __declspec( thread ) ThreadTraceState *traceState = &dummy;
+#else
+        __thread ThreadTraceState *traceState = &dummy;
+#endif    
+    }
 
     CmdLine cmdLine;
 
