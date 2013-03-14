@@ -661,6 +661,7 @@ namespace mongo {
         }
 
         void Journal::_rotate() {
+            MTRACE("rotate");
 
             RACECHECK;
 
@@ -700,6 +701,7 @@ namespace mongo {
             will not return until on disk
         */
         void WRITETOJOURNAL(JSectHeader h, AlignedBuilder& uncompressed) {
+            MTRACE("WRITETOJOURNAL");
             Timer t;
             j.journal(h, uncompressed);
             stats.curr->_writeToJournalMicros += t.micros();

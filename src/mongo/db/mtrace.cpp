@@ -63,7 +63,6 @@ namespace mongo {
                 z = font[ofs-32];
             }
             for( int i = 0; i < 7; i++ ) {
-                unsigned line = z & 0xf;
                 for( int y = 3; y >= 0; y-- ) { 
                     if( z&(1<<y) ) { 
                         paint(); 
@@ -106,6 +105,7 @@ namespace mongo {
             ActInfo(const char *d) {
                 {
                     string s = d;
+                    log() << s << endl;
                     if( str::endsWith(s, "ZZZ") ) { 
                         log() << "actinfo " << s << endl;
                         s = str::before(s, "::ZZZ");      
@@ -117,6 +117,25 @@ namespace mongo {
                         if( str::startsWith(s,"mongo::") )
                             s = s.substr(7);
                     }
+                    const char *p = strstr(s.c_str(), "mongo");
+                    if(p) {
+                        p += 5;
+                        while( isdigit(*p) ) p++;
+                        const char *z = strstr(p, "ZZZ");
+                        string b;
+                        log() << "debug " << p << endl;
+                        while( *p ) { 
+                            if( p == z )
+                                break;
+                            log() << *p << endl;
+                            if( isdigit(*p) ) 
+                                b.push_back(' ');
+                            else
+                                b.push_back(*p);
+                            p++;
+                        }
+                        s = b;
+                    }
                     desc = s;
                 }
 
@@ -124,7 +143,7 @@ namespace mongo {
                 int x = (z++)%3;
                 clr.color[x] = (((unsigned)clr.color[x]) + 103 + z) % 256;
                 c = clr;
-                //log() << "actinfo " << d << " ord:" << ord << endl;
+                log() << "actinfo " << d << " ord:" << ord << endl;
             }
             /*ActInfo(const char *d, int r, int g, int b) : desc(d), c(r,g,b) {
                 ord = z++;
@@ -143,11 +162,9 @@ namespace mongo {
 
         void gen(BMP& b, Canvas& c, int micros) { 
             const int graph_lmargin = 140;
-            const int tick_interval = 10; // microsecs
             Color light_grey(32,32,32);
             const int Samples = 1000;
 
-            unsigned long long last = 0;
             Timer t;
             unsigned long long lastReport = 0;
             unsigned long long lastMilli = 0;

@@ -158,8 +158,9 @@ namespace mongo {
 #else
     class SimpleMutex : boost::noncopyable {
     public:
+        mtrace::Act _a;
         void dassertLocked() const { }
-        SimpleMutex(const char* name) { verify( pthread_mutex_init(&_lock,0) == 0 ); }
+        SimpleMutex(const char* name) { _a=0; verify( pthread_mutex_init(&_lock,0) == 0 ); }
         ~SimpleMutex(){ 
             if ( ! StaticObserver::_destroyingStatics ) { 
                 verify( pthread_mutex_destroy(&_lock) == 0 ); 
