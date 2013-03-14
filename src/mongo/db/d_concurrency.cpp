@@ -110,14 +110,14 @@ namespace mongo {
         LockStat stats;
 
         void lock_r() { 
-            MTRACE("qlock_r");
+            MTRACE("get_qlock_r");
             verify( threadState() == 0 );
             lockState().lockedStart( 'r' );
             q.lock_r(); 
         }
         
         void lock_w() { 
-            MTRACE("qlock_w");
+            MTRACE("get_qlock_w");
             verify( threadState() == 0 );
             getDur().commitIfNeeded();
             lockState().lockedStart( 'w' );
@@ -125,7 +125,7 @@ namespace mongo {
         }
         
         void lock_R() {
-            MTRACE("qlock_R");
+            MTRACE("get_qlock_R");
             LockState& ls = lockState();
             massert(16103, str::stream() << "can't lock_R, threadState=" << (int) ls.threadState(), ls.threadState() == 0);
             ls.lockedStart( 'R' );
@@ -133,7 +133,7 @@ namespace mongo {
         }
 
         void lock_W() {            
-            MTRACE("qlock_W");
+            MTRACE("get_qlock_W");
             LockState& ls = lockState();
             if(  ls.threadState() ) {
                 log() << "can't lock_W, threadState=" << (int) ls.threadState() << endl;
@@ -149,7 +149,7 @@ namespace mongo {
 
         // how to count try's that fail is an interesting question. we should get rid of try().
         bool lock_R_try(int millis) { 
-            MTRACE("qlock_R");
+            MTRACE("try_qlock_R");
             verify( threadState() == 0 );
             bool got = q.lock_R_try(millis); 
             if( got ) 
@@ -158,7 +158,7 @@ namespace mongo {
         }
         
         bool lock_W_try(int millis) { 
-            MTRACE("qlock_W");
+            MTRACE("try_qlock_W");
             verify( threadState() == 0 );
             bool got = q.lock_W_try(millis); 
             if( got ) {
@@ -192,19 +192,19 @@ namespace mongo {
 
         // todo timing stats? : 
         void W_to_R() { 
-            MTRACE("qlock_Other");
+            MTRACE("W_to_R");
             q.W_to_R(); 
         }
         void R_to_W() { 
-            MTRACE("qlock_Other");
+            MTRACE("R_to_W");
             q.R_to_W(); 
         }
         bool w_to_X() { 
-            MTRACE("qlock_X");
+            MTRACE("w_to_X");
             return q.w_to_X(); 
         }
         void X_to_w() { 
-            MTRACE("qlock_Other");
+            MTRACE("X_to_w");
             q.X_to_w(); 
         }
 
@@ -264,6 +264,7 @@ namespace mongo {
         return ls.isLocked( ns );
     }
     void Lock::assertAtLeastReadLocked(const StringData& ns) { 
+
         if( !atLeastReadLocked(ns) ) { 
             LockState &ls = lockState();
             log() << "error expected " << ns << " to be locked " << endl;
