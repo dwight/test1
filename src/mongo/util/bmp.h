@@ -61,6 +61,7 @@ namespace mongo {
             compressionType = 0;
             a = b = 0xec4;
             c = d = 0;
+            data[0] = 0;
         }        
     };
 #pragma pack()
@@ -69,7 +70,8 @@ namespace mongo {
         Header hdr(w, h);
         p = (Header *) malloc(hdr.len);
         *p = hdr;
-        memset((void*)p->data, 0, hdr.pixelDataSize);
+        
+        memset(&p->data[0], 0, hdr.pixelDataSize);
     }
     inline BMP::~BMP() { 
         free(p); p = 0;

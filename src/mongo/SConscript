@@ -344,6 +344,7 @@ env.StaticLibrary('index_set', [ 'db/index_set.cpp' ] )
 
 # mongod files - also files used in tools. present in dbtests, but not in mongos and not in client libs.
 serverOnlyFiles = [ "db/curop.cpp",
+                    "db/mtrace.cpp",
                     "db/kill_current_op.cpp",
                     "db/memconcept.cpp",
                     "db/interrupt_status_mongod.cpp",

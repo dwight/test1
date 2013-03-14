@@ -278,6 +278,7 @@ namespace mongo {
                 string tmp;
                 long fd = 0;
                 try {
+                    MTRACE("allocfile");
                     log() << "allocating new datafile " << name << ", filling with zeroes..." << endl;
                     
                     boost::filesystem::path parent = ensureParentDirCreated(name);

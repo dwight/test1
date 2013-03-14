@@ -42,6 +42,7 @@ namespace mongo {
         typedef const char *Act;
 
         struct ThreadTraceState { 
+            ThreadTraceState(int n) : nest(n) { }
             ThreadTraceState();
             enum { N = 7 };
             unsigned nest;

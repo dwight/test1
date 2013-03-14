@@ -25,6 +25,7 @@
 #include "mongoutils/str.h"
 #include "timer.h"
 #include "platform/atomic_word.h"
+#include "mtrace.h"
 
 namespace mongo {
 
@@ -78,6 +79,8 @@ namespace mongo {
             name = "NONE";
         
         _threadName.reset( new string(name) );
+
+        mtrace::initThread(name);
         
 #if defined( DEBUG ) && defined( _WIN32 )
         // naming might be expensive so don't do "conn*" over and over
